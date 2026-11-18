@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- Papote invite link page (FAMILY_SYNC_SPEC §4 flow A), published at https://guyfran.github.io/papote/join/
+     (GitHub Pages of the public repo GuyFran/papote, since 2026-11-18). Source of truth: site/ in papote-core; copy changes there.
+     The invite e-mail (Google Drive's share notice, sent by tools/papote-drive.js) links here with ?f=<familyId>&i=<inviteId>.
+     It opens the Papote app (papote://join?f=…&i=…; Android through an intent: URL). Static: it stores and sends nothing;
+     the ids are only passed to the app, which checks the invite after Google sign-in. Ported from Mind Grind core's site/join. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#18163A">
+<title>Join your family · Papote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Instrument+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#211C4E; --sub:#5D5A7A; --line:#DCDBE8; --bg:#F1F1F7; --card:#FFFFFF; --pr:#4C4FD8; --yellow:#FFD84A; --night:#18163A; --warn:#B4441C; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+    padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    background: var(--bg); color: var(--ink); font: 400 16px/1.5 'Instrument Sans', system-ui, sans-serif; overflow-x: hidden; }
+  .card { width: 100%; max-width: 440px; background: var(--card); border-radius: 16px; padding: 28px 22px 22px; text-align: center;
+    box-shadow: 0 1px 2px rgba(33,28,78,.08), 0 18px 40px rgba(33,28,78,.10); }
+  .logo { width: 72px; height: 72px; margin: 0 auto 14px; border-radius: 18px; background: var(--night); display: grid; place-items: center;
+    color: var(--yellow); font: 600 38px/1 Fredoka, sans-serif; }
+  .brand { font: 700 13px/1 'Instrument Sans', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--sub); margin: 0 0 10px; }
+  h1 { font: 600 26px/1.2 Fredoka, sans-serif; margin: 0 0 10px; }
+  .lead { color: var(--sub); margin: 0 auto 22px; max-width: 34ch; }
+  .btn { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; padding: 0 18px; border-radius: 8px;
+    background: var(--pr); color: #fff; font: 600 17px/1 'Instrument Sans', sans-serif; text-decoration: none; }
+  .btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+  .status { margin: 12px 0 0; font-size: 14px; color: var(--sub); min-height: 22px; }
+  .help { margin: 22px 0 0; padding: 16px 4px 0; border-top: 1px solid var(--line); text-align: left; }
+  .help h2 { font: 600 16px/1.2 Fredoka, sans-serif; margin: 0 0 12px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; margin: 0 0 12px; color: var(--sub); font-size: 15px; }
+  .step b { color: var(--ink); }
+  .num { flex: none; width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; background: var(--pr); color: #fff; font: 700 13px/1 'Instrument Sans', sans-serif; }
+  .note { margin: 10px 0 0; font-size: 13px; color: var(--sub); }
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="logo" aria-hidden="true">P</div>
+  <p class="brand">Papote</p>
+  <h1 id="title">You’re invited to your family</h1>
+  <p class="lead" id="lead">A grown-up invited you to learn French with the family in Papote.</p>
+  <a class="btn" id="open" href="#">Open Papote</a>
+  <p class="status" id="status" aria-live="polite">Opening the app…</p>
+  <section class="help" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">Nothing opened?</h2>
+    <p class="step" id="step1"><span class="num">1</span><span>Open this link on the <b>phone, tablet or PC</b> where Papote is installed. No app yet? Ask the grown-up who invited you.</span></p>
+    <p class="step"><span class="num">2</span><span>In Papote, open <b>Family</b>.</span></p>
+    <p class="step"><span class="num">3</span><span>Sign in with the <b>Google account this invite was sent to</b>. Your family is found by itself.</span></p>
+  </section>
+  <p class="note">This page doesn’t store or send anything.</p>
+</main>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), ok = /^[A-Za-z0-9_-]{1,128}$/;
+  var f = q.get('f') || '', i = q.get('i') || '';
+  var btn = document.getElementById('open'), status = document.getElementById('status');
+  if (!ok.test(f)) {
+    document.getElementById('title').textContent = 'This invite link is incomplete';
+    document.getElementById('lead').textContent = 'Open Papote, open Family and sign in with the Google account the invite was sent to.';
+    btn.classList.add('hide'); status.classList.add('hide'); document.getElementById('step1').classList.add('hide');
+    document.getElementById('helpTitle').textContent = 'Join without the link';
+    return;
+  }
+  var data = 'join?f=' + encodeURIComponent(f) + (ok.test(i) ? '&i=' + encodeURIComponent(i) : '');
+  var android = /Android/i.test(navigator.userAgent);
+  // Android browsers (Chrome, Silk on Fire tablets) open the app through an intent: URL; Windows through the papote: scheme.
+  var target = android ? 'intent://' + data + '#Intent;scheme=papote;package=com.guyfran.papote;end' : 'papote://' + data;
+  btn.href = target;
+  setTimeout(function () { location.href = target; }, 400);
+  setTimeout(function () { if (document.visibilityState === 'visible') status.textContent = 'Tap the button to open Papote.'; }, 2500);
+})();
+</script>
+</body>
+</html>
